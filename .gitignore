@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+*.pio
+
+# Secret Stuff
+ArduinoSecrets.h
+
+
