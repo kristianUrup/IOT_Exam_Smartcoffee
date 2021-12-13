@@ -64,7 +64,7 @@ void loop() {
   delay(4000);
   client.connect("kristian", BROKER_USER, "");
   Temperature temp(1, '2','1','3','4');
-  String output = temp.ToJsonObject();
+  String output = temp.ToJsonString();
   client.publish(willTopic, output.c_str());
   client.loop();
 }

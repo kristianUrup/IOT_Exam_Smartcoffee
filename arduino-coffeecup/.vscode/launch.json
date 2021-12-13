@@ -12,11 +12,7 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug",
-<<<<<<< HEAD
-            "executable": "C:/Users/45427/Documents/IOT/IOT_Exam_Smartcoffee/arduino-coffeecup/.pio/build/firebeetle32/firmware.elf",
-=======
             "executable": "C:/Users/Bruger/Documents/GitHub/IOT_Exam_Smartcoffee/arduino-coffeecup/.pio/build/firebeetle32/firmware.elf",
->>>>>>> 2f32300f3d7dc0cddf8be597d7e32a45a622d711
             "projectEnvName": "firebeetle32",
             "toolchainBinDir": "C:/Users/Bruger/.platformio/packages/toolchain-xtensa32/bin",
             "internalConsoleOptions": "openOnSessionStart",
@@ -29,11 +25,7 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug (skip Pre-Debug)",
-<<<<<<< HEAD
-            "executable": "C:/Users/45427/Documents/IOT/IOT_Exam_Smartcoffee/arduino-coffeecup/.pio/build/firebeetle32/firmware.elf",
-=======
             "executable": "C:/Users/Bruger/Documents/GitHub/IOT_Exam_Smartcoffee/arduino-coffeecup/.pio/build/firebeetle32/firmware.elf",
->>>>>>> 2f32300f3d7dc0cddf8be597d7e32a45a622d711
             "projectEnvName": "firebeetle32",
             "toolchainBinDir": "C:/Users/Bruger/.platformio/packages/toolchain-xtensa32/bin",
             "internalConsoleOptions": "openOnSessionStart"
@@ -42,11 +34,7 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug (without uploading)",
-<<<<<<< HEAD
-            "executable": "C:/Users/45427/Documents/IOT/IOT_Exam_Smartcoffee/arduino-coffeecup/.pio/build/firebeetle32/firmware.elf",
-=======
             "executable": "C:/Users/Bruger/Documents/GitHub/IOT_Exam_Smartcoffee/arduino-coffeecup/.pio/build/firebeetle32/firmware.elf",
->>>>>>> 2f32300f3d7dc0cddf8be597d7e32a45a622d711
             "projectEnvName": "firebeetle32",
             "toolchainBinDir": "C:/Users/Bruger/.platformio/packages/toolchain-xtensa32/bin",
             "internalConsoleOptions": "openOnSessionStart",

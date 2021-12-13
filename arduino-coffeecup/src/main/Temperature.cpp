@@ -18,7 +18,7 @@ class Temperature {
             SensorId = SensorId;
         };
 
-        String ToJsonObject() {
+        String ToJsonString() {
             String output;
             StaticJsonDocument<512> doc;
             doc["id"] = Id;
