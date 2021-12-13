@@ -50,9 +50,7 @@ void reconnect() {
     if(client.connect("kristian", FLESPI_TOKEN, "")){
       Serial.print("\nConnected to ");
       Serial.print(broker);
-      Temperature temp = Temperature(1, '2', 'meas', 'time','sen');
-      client.publish(willTopic, willMessage);
-    }else {
+    } else {
       Serial.println("\nTrying again");
       delay(5000);
     }
@@ -65,6 +63,8 @@ void loop() {
   }
   delay(4000);
   client.connect("kristian", BROKER_USER, "");
-  client.publish(willTopic, willMessage);
+  Temperature temp(1, '2','1','3','4');
+  String output = temp.ToJsonObject();
+  client.publish(willTopic, output.c_str());
   client.loop();
 }
