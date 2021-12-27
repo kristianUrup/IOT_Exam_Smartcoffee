@@ -4,18 +4,18 @@
 
 class Temperature {
     public:
-        int Id;  
-        char Value;
-        char MeasurementUnit;
-        char TimeStamp;
-        char SensorId;
+        String Id;  
+        float Value;
+        String MeasurementUnit;
+        String TimeStamp;
+        String SensorId;
 
-        Temperature(int id, char value, char measurementUnit, char timeStamp, char sensorId) {
+        Temperature(String id, float value, String measurementUnit, String timeStamp, String sensorId) {
             Id = id;
             Value = value;
             MeasurementUnit = measurementUnit;
             TimeStamp = timeStamp;
-            SensorId = SensorId;
+            SensorId = sensorId;
         };
 
         String ToJsonString() {

@@ -2,6 +2,8 @@
 #include <ArduinoMqttClient.h>
 #include <WiFi.h>
 #include <PubSubClient.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
 #include "Temperature.cpp"
 #include "ArduinoSecrets.h"
 
@@ -11,6 +13,11 @@ byte willQoS = 0;
 const char* willTopic = "kristian";
 const char* willMessage = "Frederik er lækker";
 boolean willRetain = false;
+
+const int oneWireBus = 4;
+OneWire oneWire(oneWireBus);
+
+DallasTemperature sensors(&oneWire);
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -55,6 +62,7 @@ void setup() {
     delay(300);
     
   client.setServer(broker, 1883);
+  sensors.begin();
 }
 
 void loop() {
@@ -62,8 +70,10 @@ void loop() {
     reconnect();
   }
   delay(4000);
+  sensors.requestTemperatures();
+  float temperatureC = sensors.getTempCByIndex(0);
   client.connect("kristian", BROKER_USER, "");
-  Temperature temp(1, '2','1','3','4');
+  Temperature temp("Machine Id", temperatureC, "Celsius", "Now", "Some Id");
   String output = temp.ToJsonString();
   client.publish(willTopic, output.c_str());
   client.loop();
