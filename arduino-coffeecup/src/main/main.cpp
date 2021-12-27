@@ -4,6 +4,7 @@
 #include <PubSubClient.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
+
 #include "Temperature.cpp"
 #include "ArduinoSecrets.h"
 
@@ -35,7 +36,6 @@ void setupWifi() {
 
   Serial.print("\nConnected to ");
   Serial.println(SECRET_SSID);
-
 }
 
 void reconnect() {
@@ -72,8 +72,8 @@ void loop() {
   delay(4000);
   sensors.requestTemperatures();
   float temperatureC = sensors.getTempCByIndex(0);
-  client.connect("kristian", BROKER_USER, "");
-  Temperature temp("Machine Id", temperatureC, "Celsius", "Now", "Some Id");
+  Temperature temp("Machine Id", temperatureC, "Celsius", "Some Id");
+  client.connect("kristian", BROKER_USER, "");  
   String output = temp.ToJsonString();
   client.publish(willTopic, output.c_str());
   client.loop();

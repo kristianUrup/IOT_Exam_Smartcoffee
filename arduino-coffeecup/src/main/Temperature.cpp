@@ -7,14 +7,12 @@ class Temperature {
         String Id;  
         float Value;
         String MeasurementUnit;
-        String TimeStamp;
         String SensorId;
 
-        Temperature(String id, float value, String measurementUnit, String timeStamp, String sensorId) {
+        Temperature(String id, float value, String measurementUnit, String sensorId) {
             Id = id;
             Value = value;
             MeasurementUnit = measurementUnit;
-            TimeStamp = timeStamp;
             SensorId = sensorId;
         };
 
@@ -25,7 +23,6 @@ class Temperature {
             doc["sensorId"] = SensorId;
             doc["value"] = Value;
             doc["measurementUnit"] = MeasurementUnit;
-            doc["timeStamp"] = TimeStamp;
             serializeJson(doc, output);
             return output;
         };
