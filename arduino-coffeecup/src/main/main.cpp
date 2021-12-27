@@ -1,9 +1,9 @@
 #include <Arduino.h>
 #include <ArduinoMqttClient.h>
 #include <WiFi.h>
-#include <ArduinoSecrets.h>
 #include <PubSubClient.h>
 #include "Temperature.cpp"
+#include "ArduinoSecrets.h"
 
 const char* broker = "mqtt.flespi.io";
 
@@ -31,15 +31,6 @@ void setupWifi() {
 
 }
 
-void setup() {
-  Serial.begin(115200);
-  setupWifi();
-  pinMode(LED_BUILTIN, HIGH);
-    delay(300);
-    
-  client.setServer(broker, 1883);
-}
-
 void reconnect() {
   while(!client.connected()){
     Serial.println("\nConnecting to ");
@@ -55,6 +46,15 @@ void reconnect() {
       delay(5000);
     }
   }
+}
+
+void setup() {
+  Serial.begin(115200);
+  setupWifi();
+  pinMode(LED_BUILTIN, HIGH);
+    delay(300);
+    
+  client.setServer(broker, 1883);
 }
 
 void loop() {
