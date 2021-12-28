@@ -7,6 +7,7 @@
 
 #include "Temperature.cpp"
 #include "ArduinoSecrets.h"
+#include "Arduinodata.h"
 
 const char* broker = "mqtt.flespi.io";
 
@@ -15,8 +16,7 @@ const char* willTopic = "kristian";
 const char* willMessage = "Frederik er lækker";
 boolean willRetain = false;
 
-const int oneWireBus = 4;
-OneWire oneWire(oneWireBus);
+OneWire oneWire(TEMP_PIN);
 
 DallasTemperature sensors(&oneWire);
 
@@ -26,23 +26,20 @@ PubSubClient client(espClient);
 void setupWifi() {
   delay(100);
   
-  Serial.print("\nConnecting to ");
-  Serial.println(SECRET_SSID);
   WiFi.begin(SECRET_SSID, SECRET_PASS);
   while (WiFi.status() != WL_CONNECTED){
     delay(100);
     Serial.print("-");
   }
 
-  Serial.print("\nConnected to ");
-  Serial.println(SECRET_SSID);
+  Serial.print("\nConnected to: ");
+  Serial.print(SECRET_SSID);
 }
 
 void reconnect() {
   while(!client.connected()){
     Serial.println("\nConnecting to ");
     Serial.println(broker);
-    Serial.println(client.connected());
     // Flespi doesn't care about the password, it only wants the token.
     // client(<clientId>, <username>, <password>)
     if(client.connect("kristian", FLESPI_TOKEN, "")){
@@ -59,7 +56,7 @@ void setup() {
   Serial.begin(115200);
   setupWifi();
   pinMode(LED_BUILTIN, HIGH);
-    delay(300);
+  delay(3000);
     
   client.setServer(broker, 1883);
   sensors.begin();
@@ -68,13 +65,12 @@ void setup() {
 void loop() {
   if(!client.connected()){
     reconnect();
-  }
-  delay(4000);
+  }  
   sensors.requestTemperatures();
   float temperatureC = sensors.getTempCByIndex(0);
-  Temperature temp("Machine Id", temperatureC, "Celsius", "Some Id");
-  client.connect("kristian", BROKER_USER, "");  
+  Temperature temp(MACHINE_ID, temperatureC, "Celsius", TEMP_SENSOR_ID);
   String output = temp.ToJsonString();
   client.publish(willTopic, output.c_str());
   client.loop();
+  delay(4000);
 }

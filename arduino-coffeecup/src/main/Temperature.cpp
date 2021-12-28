@@ -4,13 +4,13 @@
 
 class Temperature {
     public:
-        String Id;  
+        String MachineId;  
         float Value;
         String MeasurementUnit;
         String SensorId;
 
-        Temperature(String id, float value, String measurementUnit, String sensorId) {
-            Id = id;
+        Temperature(String machineId, float value, String measurementUnit, String sensorId) {
+            MachineId = machineId;
             Value = value;
             MeasurementUnit = measurementUnit;
             SensorId = sensorId;
@@ -19,7 +19,7 @@ class Temperature {
         String ToJsonString() {
             String output;
             StaticJsonDocument<512> doc;
-            doc["id"] = Id;
+            doc["id"] = MachineId;
             doc["sensorId"] = SensorId;
             doc["value"] = Value;
             doc["measurementUnit"] = MeasurementUnit;
