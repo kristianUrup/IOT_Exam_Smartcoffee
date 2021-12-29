@@ -87,7 +87,7 @@ double getLiquidDistance() {
   long duration = pulseIn(ULTRASONIC_ECHO_PIN, HIGH);
   double distance = duration * SOUND_SPEED / 2;
 
-  return distance + 1.4;
+  return distance + ULTRASONIC_LENGTH;
 }
 
 double calculateVolumeOfCoffee(double coffeeDistance) {
@@ -172,7 +172,7 @@ void handleSipping() {
       Serial.println("ml");
       currentCoffeeVolume = newVolume;
       distanceToCoffee = newDistanceToCoffee;
-      sipAngle = (atan2(distanceToCoffee, CUP_RADIUS) * RADIAN_TO_DEGREE) - 8;
+      sipAngle = (atan2(distanceToCoffee, CUP_RADIUS) * RADIAN_TO_DEGREE) - SIP_ANGLE_OFFSET;
     }
     delay(1000);
   }  
@@ -206,7 +206,7 @@ void setup() {
   Serial.print("volume of coffee: ");
   Serial.print(currentCoffeeVolume);
   Serial.println("ml");
-  sipAngle = (atan2(distanceToCoffee, CUP_RADIUS) * RADIAN_TO_DEGREE) - 8;
+  sipAngle = (atan2(distanceToCoffee, CUP_RADIUS) * RADIAN_TO_DEGREE) - SIP_ANGLE_OFFSET;
 
   Serial.print("Angle for sipping: ");
   Serial.println(sipAngle);
