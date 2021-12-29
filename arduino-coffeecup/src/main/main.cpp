@@ -4,6 +4,10 @@
 #include <PubSubClient.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
+#include <Adafruit_MPU6050.h>
+#include <Adafruit_Sensor.h>
+#include <Wire.h>
+#include <math.h>
 
 #include "Temperature.cpp"
 #include "Settings.cpp"
@@ -18,7 +22,12 @@ const char* willMessage = "Frederik er lækker";
 boolean willRetain = false;
 
 int interval = 5000;
+boolean sipState = false;
+double sipAngle;
+double distanceToCoffee;
+double currentCoffeeVolume;
 
+Adafruit_MPU6050 gyro;
 OneWire oneWire(TEMP_PIN);
 DallasTemperature temp_sensor(&oneWire);
 
@@ -65,15 +74,15 @@ void settings_callback(char* topic, byte* payload, unsigned int length) {
   Serial.print(json);
   Settings settings(json);
   interval = settings.Interval;
-  Serial.println();
+  Serial.println();  
 }
 
-float getLiquidAmount() {
+float getLiquidDistance() {
   digitalWrite(ULTRASONIC_TRIG_PIN, LOW);
   delayMicroseconds(2);
   digitalWrite(ULTRASONIC_TRIG_PIN, HIGH);
   delayMicroseconds(10);
-  digitalWrite(ULTRASONIC_TRIG_PIN, LOW);
+  digitalWrite(ULTRASONIC_TRIG_PIN, LOW);  
 
   long duration = pulseIn(ULTRASONIC_ECHO_PIN, HIGH);
   float distance = duration * SOUND_SPEED / 2;
@@ -81,14 +90,106 @@ float getLiquidAmount() {
   return distance;
 }
 
+double calculateVolumeOfCoffee(double coffeeDistance) {
+  return volume = PI * (CUP_RADIUS * CUP_RADIUS) * coffeeDistance;
+}
+
+void handleSipping() {
+  sensors_event_t a, g, temp;
+  gyro.getEvent(&a, &g, &temp);
+
+  double roll = 0.00;
+  double pitch = 0.00;
+  double x_Buff = float(a.acceleration.x);
+  double y_Buff = float(a.acceleration.y);
+  double z_Buff = float(a.acceleration.z);
+  roll = atan2(y_Buff, z_Buff) * RADIAN_TO_DEGREE;
+  pitch = atan2((- x_Buff), sqrt(y_Buff * y_Buff + z_Buff * z_Buff)) * RADIAN_TO_DEGREE;
+
+  Serial.println("");
+  Serial.print(roll);
+  Serial.print(" ");
+  Serial.print(pitch);
+  Serial.println("");
+  Serial.print(STATIC_ROLL);
+  Serial.print(" ");
+  Serial.print(STATIC_PITCH);
+  Serial.println("");
+
+  double absoluteDifferencePitch = abs(abs(STATIC_ROLL) - abs(roll));
+  double absoluteDifferenceRoll = abs(abs(STATIC_PITCH) - abs(pitch));
+
+  Serial.print("Sip angle: ");
+  Serial.println(sipAngle);
+  Serial.print("Absolute difference pitch: ");
+  Serial.println(absoluteDifferencePitch);
+  Serial.print("Absolute difference roll: ");
+  Serial.println(absoluteDifferenceRoll);
+
+  if(((absoluteDifferencePitch >= sipAngle) || (absoluteDifferenceRoll >= sipAngle)) && !sipState) {
+    sipState = true;
+    Serial.println("User is sipping");
+  }
+
+  while(sipState) {
+    gyro.getEvent(&a, &g, &temp);
+    x_Buff = float(a.acceleration.x);
+    y_Buff = float(a.acceleration.y);
+    z_Buff = float(a.acceleration.z);
+
+    roll = atan2(y_Buff , z_Buff) * RADIAN_TO_DEGREE;
+    pitch = atan2((- x_Buff) , sqrt(y_Buff * y_Buff + z_Buff * z_Buff)) * RADIAN_TO_DEGREE;
+
+    absoluteDifferencePitch = abs(abs(STATIC_ROLL) - abs(roll));
+    absoluteDifferenceRoll = abs(abs(STATIC_ROLL) - abs(pitch));
+
+    Serial.print("Sip angle: ");
+    Serial.println(sipAngle);
+    Serial.print("Absolute difference pitch: ");
+    Serial.println(absoluteDifferencePitch);
+    Serial.print("Absolute difference roll: ");
+    Serial.println(absoluteDifferenceRoll);
+
+    if((absoluteDifferencePitch < STILL_ANGLE) && (absoluteDifferenceRoll < STILL_ANGLE)) {    
+      sipState = false;
+      Serial.println("Sip is done");
+      float newDistance = getLiquidDistance();
+      Serial.print("New distance: ");
+      Serial.println(newDistance);
+      Serial.print("Distance difference: ");
+      Serial.print("Old distance: ");
+      Serial.println(distanceToCoffee);
+      Serial.print(newDistance - distanceToCoffee);
+    }
+    delay(1000);
+  }  
+}
+
 void setup() {
   Serial.begin(115200);
 
+  if (!gyro.begin()) {
+    Serial.println("Could not find sensor");
+  } else {
+    Serial.println("Sensor found");
+  }
+
   setupWifi();
   delay(3000);
+  gyro.setAccelerometerRange(MPU6050_RANGE_8_G);
+  gyro.setGyroRange(MPU6050_RANGE_500_DEG);
+  gyro.setFilterBandwidth(MPU6050_BAND_5_HZ);
 
   pinMode(ULTRASONIC_TRIG_PIN, OUTPUT); // Sets the trigPin as an OUTPUT
   pinMode(ULTRASONIC_ECHO_PIN, INPUT);
+  
+  distanceToCoffee = getLiquidDistance();
+  Serial.print("distance to coffee: ");
+  Serial.println(distanceToCoffee);
+  sipAngle = atan2(distanceToCoffee, CUP_RADIUS) * RADIAN_TO_DEGREE;
+
+  Serial.print("Angle for sipping: ");
+  Serial.println(sipAngle);
     
   client.setServer(broker, 1883); 
   client.setCallback(settings_callback);
@@ -100,12 +201,9 @@ void loop() {
     reconnect();
   }
 
-  float distance = getLiquidAmount();
-  Serial.print("Distance: ");
-  Serial.print(distance);
-  Serial.println("cm");
+  handleSipping();
 
-  temp_sensor.requestTemperatures();
+  /*temp_sensor.requestTemperatures();
   float temperatureC = temp_sensor.getTempCByIndex(0);
   Temperature temp(MACHINE_ID, temperatureC, "Celsius", TEMP_SENSOR_ID);
   String output = temp.ToJsonString();
@@ -113,5 +211,6 @@ void loop() {
   client.publish(willTopic, output.c_str());
   client.loop();
 
-  delay(interval);
+  delay(interval);*/
+  delay(1000);
 }
