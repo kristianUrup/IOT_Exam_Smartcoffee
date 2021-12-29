@@ -8,6 +8,6 @@
 #define STATIC_PITCH -73
 #define STATIC_ROLL -177
 #define CUP_RADIUS 3.65
-#define STILL_ANGLE 8
+#define STILL_ANGLE 6
 #define RADIAN_TO_DEGREE 57.3
 #define CUP_HEIGHT 9

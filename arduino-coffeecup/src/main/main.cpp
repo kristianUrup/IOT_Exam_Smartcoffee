@@ -77,7 +77,7 @@ void settings_callback(char* topic, byte* payload, unsigned int length) {
   Serial.println();  
 }
 
-float getLiquidDistance() {
+double getLiquidDistance() {
   digitalWrite(ULTRASONIC_TRIG_PIN, LOW);
   delayMicroseconds(2);
   digitalWrite(ULTRASONIC_TRIG_PIN, HIGH);
@@ -85,13 +85,13 @@ float getLiquidDistance() {
   digitalWrite(ULTRASONIC_TRIG_PIN, LOW);  
 
   long duration = pulseIn(ULTRASONIC_ECHO_PIN, HIGH);
-  float distance = duration * SOUND_SPEED / 2;
+  double distance = duration * SOUND_SPEED / 2;
 
-  return distance;
+  return distance + 1.4;
 }
 
 double calculateVolumeOfCoffee(double coffeeDistance) {
-  return volume = PI * (CUP_RADIUS * CUP_RADIUS) * coffeeDistance;
+  return PI * (CUP_RADIUS * CUP_RADIUS) * coffeeDistance;
 }
 
 void handleSipping() {
@@ -141,7 +141,7 @@ void handleSipping() {
     pitch = atan2((- x_Buff) , sqrt(y_Buff * y_Buff + z_Buff * z_Buff)) * RADIAN_TO_DEGREE;
 
     absoluteDifferencePitch = abs(abs(STATIC_ROLL) - abs(roll));
-    absoluteDifferenceRoll = abs(abs(STATIC_ROLL) - abs(pitch));
+    absoluteDifferenceRoll = abs(abs(STATIC_PITCH) - abs(pitch));
 
     Serial.print("Sip angle: ");
     Serial.println(sipAngle);
@@ -150,16 +150,29 @@ void handleSipping() {
     Serial.print("Absolute difference roll: ");
     Serial.println(absoluteDifferenceRoll);
 
-    if((absoluteDifferencePitch < STILL_ANGLE) && (absoluteDifferenceRoll < STILL_ANGLE)) {    
+    if((absoluteDifferencePitch < STILL_ANGLE) && (absoluteDifferenceRoll < STILL_ANGLE)) {
+      delay(500);    
       sipState = false;
       Serial.println("Sip is done");
-      float newDistance = getLiquidDistance();
+      double newDistanceToCoffee = getLiquidDistance();
+      double newDistance = CUP_HEIGHT - newDistanceToCoffee;
+      double newVolume = calculateVolumeOfCoffee(newDistance);
+      double volumeSipped = currentCoffeeVolume - newVolume;
+      Serial.print("New distance to coffee: ");
+      Serial.println(newDistanceToCoffee);
       Serial.print("New distance: ");
       Serial.println(newDistance);
-      Serial.print("Distance difference: ");
       Serial.print("Old distance: ");
       Serial.println(distanceToCoffee);
-      Serial.print(newDistance - distanceToCoffee);
+      Serial.print("New volume: ");
+      Serial.print(newVolume);
+      Serial.println("ml");
+      Serial.print("Volume sipped: ");
+      Serial.print(volumeSipped);
+      Serial.println("ml");
+      currentCoffeeVolume = newVolume;
+      distanceToCoffee = newDistanceToCoffee;
+      sipAngle = (atan2(distanceToCoffee, CUP_RADIUS) * RADIAN_TO_DEGREE) - 8;
     }
     delay(1000);
   }  
@@ -184,9 +197,16 @@ void setup() {
   pinMode(ULTRASONIC_ECHO_PIN, INPUT);
   
   distanceToCoffee = getLiquidDistance();
+  double coffeeHeight = CUP_HEIGHT - distanceToCoffee;
+  currentCoffeeVolume = calculateVolumeOfCoffee(coffeeHeight);  
   Serial.print("distance to coffee: ");
   Serial.println(distanceToCoffee);
-  sipAngle = atan2(distanceToCoffee, CUP_RADIUS) * RADIAN_TO_DEGREE;
+  Serial.print("coffee height: ");
+  Serial.println(coffeeHeight);
+  Serial.print("volume of coffee: ");
+  Serial.print(currentCoffeeVolume);
+  Serial.println("ml");
+  sipAngle = (atan2(distanceToCoffee, CUP_RADIUS) * RADIAN_TO_DEGREE) - 8;
 
   Serial.print("Angle for sipping: ");
   Serial.println(sipAngle);
@@ -202,6 +222,8 @@ void loop() {
   }
 
   handleSipping();
+  Serial.print(getLiquidDistance());
+  Serial.println("cm");
 
   /*temp_sensor.requestTemperatures();
   float temperatureC = temp_sensor.getTempCByIndex(0);
