@@ -6,6 +6,7 @@
 #include <DallasTemperature.h>
 
 #include "Temperature.cpp"
+#include "Settings.cpp"
 #include "ArduinoSecrets.h"
 #include "Arduinodata.h"
 
@@ -15,6 +16,8 @@ byte willQoS = 0;
 const char* willTopic = "kristian";
 const char* willMessage = "Frederik er lækker";
 boolean willRetain = false;
+
+int interval = 5000;
 
 OneWire oneWire(TEMP_PIN);
 DallasTemperature temp_sensor(&oneWire);
@@ -44,6 +47,7 @@ void reconnect() {
     if(client.connect("kristian", FLESPI_TOKEN, "")){
       Serial.print("\nConnected to ");
       Serial.print(broker);
+      client.subscribe("settings");
     } else {
       Serial.println("\nTrying again");
       delay(5000);
@@ -51,17 +55,17 @@ void reconnect() {
   }
 }
 
-void setup() {
-  Serial.begin(115200);
-
-  setupWifi();
-  delay(3000);
-
-  pinMode(ULTRASONIC_TRIG_PIN, OUTPUT); // Sets the trigPin as an OUTPUT
-  pinMode(ULTRASONIC_ECHO_PIN, INPUT);
-    
-  client.setServer(broker, 1883);
-  temp_sensor.begin();
+void settings_callback(char* topic, byte* payload, unsigned int length) {
+  String json = "";
+  Serial.print("Topic: ");
+  Serial.println(topic);
+  for (int i = 0; i < length; i++) {
+    json = json + (char)payload[i];
+  }
+  Serial.print(json);
+  Settings settings(json);
+  interval = settings.Interval;
+  Serial.println();
 }
 
 float getLiquidAmount() {
@@ -75,6 +79,20 @@ float getLiquidAmount() {
   float distance = duration * SOUND_SPEED / 2;
 
   return distance;
+}
+
+void setup() {
+  Serial.begin(115200);
+
+  setupWifi();
+  delay(3000);
+
+  pinMode(ULTRASONIC_TRIG_PIN, OUTPUT); // Sets the trigPin as an OUTPUT
+  pinMode(ULTRASONIC_ECHO_PIN, INPUT);
+    
+  client.setServer(broker, 1883); 
+  client.setCallback(settings_callback);
+  temp_sensor.begin();
 }
 
 void loop() {
@@ -95,5 +113,5 @@ void loop() {
   client.publish(willTopic, output.c_str());
   client.loop();
 
-  delay(4000);
+  delay(interval);
 }

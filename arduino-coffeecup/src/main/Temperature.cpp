@@ -1,5 +1,4 @@
 #include <iostream>
-#include "TemperatureBody.cpp"
 #include <ArduinoJson.h>
 
 class Temperature {
