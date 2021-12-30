@@ -18,11 +18,6 @@
 
 const char* broker = "mqtt.flespi.io";
 
-byte willQoS = 0;
-const char* willTopic = "kristian";
-const char* willMessage = "Frederik er lækker";
-boolean willRetain = false;
-
 int interval = 5000;
 unsigned long previousMillis = 0;
 boolean sipState = false;
@@ -237,14 +232,20 @@ void setup() {
 }
 
 void loop() {
-  /*if(!client.connected()){
+  if(!client.connected()){
     reconnect();
-  }*/
+  }
   long currentMillis = millis();
   if (currentMillis - previousMillis >= interval) {
     Serial.print(interval / 1000);
     Serial.println(" seconds has passed");
     Serial.println(currentMillis - previousMillis);
+    temp_sensor.requestTemperatures();
+    float temperatureC = temp_sensor.getTempCByIndex(0);
+    Temperature temp(MACHINE_ID, temperatureC, "Celsius");
+    String output = temp.ToJsonString();
+
+    client.publish("temperature", output.c_str());  
     previousMillis = millis();
   }
   //handleSipping();
@@ -255,15 +256,6 @@ void loop() {
   Serial.print("Coffee height: ");
   Serial.print(CUP_HEIGHT - getNormalizedLiquidDistance());
   Serial.println("cm");*/
-
-  /*temp_sensor.requestTemperatures();
-  float temperatureC = temp_sensor.getTempCByIndex(0);
-  Temperature temp(MACHINE_ID, temperatureC, "Celsius");
-  String output = temp.ToJsonString();
-
-  client.publish(willTopic, output.c_str());
   client.loop();
-
-  delay(interval);*/
   delay(10);
 }
