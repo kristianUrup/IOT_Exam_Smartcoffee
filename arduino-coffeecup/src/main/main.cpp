@@ -227,7 +227,7 @@ void loop() {
 
   /*temp_sensor.requestTemperatures();
   float temperatureC = temp_sensor.getTempCByIndex(0);
-  Temperature temp(MACHINE_ID, temperatureC, "Celsius", TEMP_SENSOR_ID);
+  Temperature temp(MACHINE_ID, temperatureC, "Celsius");
   String output = temp.ToJsonString();
 
   client.publish(willTopic, output.c_str());
