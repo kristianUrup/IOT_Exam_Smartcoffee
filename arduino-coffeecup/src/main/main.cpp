@@ -173,6 +173,7 @@ void handleSipping() {
       currentCoffeeVolume = newVolume;
       distanceToCoffee = newDistanceToCoffee;
       sipAngle = (atan2(distanceToCoffee, CUP_RADIUS) * RADIAN_TO_DEGREE) - SIP_ANGLE_OFFSET;
+      
     }
     delay(1000);
   }  

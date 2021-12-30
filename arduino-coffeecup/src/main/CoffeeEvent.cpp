@@ -1,27 +1,23 @@
 #include <iostream>
 #include <ArduinoJson.h>
 
-class CoffeeEvent {
+class CoffeeMessage {
     public:
         String MachineId;
-        double VolumeDiff;
-        double CurrentVolume;
+        String MessageBody;
 
-
-    CoffeeEvent(String machineId, double volumeDiff, double currentVolume) {
+    CoffeeMessage(String machineId, String messageBody) {
         MachineId = machineId;
-        VolumeDiff = volumeDiff;
-        CurrentVolume = currentVolume;
-    }
+        MessageBody = messageBody;
+    };
 
     String ToJsonString() {
         String output;
         StaticJsonDocument<512> doc;
         doc["id"] = MachineId;
-        doc["valueDiff"] = VolumeDiff;
-        doc["currentVolume"] = CurrentVolume;
+        doc["messageBody"] = MessageBody;
         serializeJson(doc, output);
         return output;
-    }
+    };
 }
 
