@@ -2,20 +2,21 @@
 #include <ArduinoJson.h>
 
 class SipEvent {
-    double VolumeSipped;
-    double CurrentVolume;
+    public:
+        double VolumeSipped;
+        double CurrentVolume;
 
-    SipEvent(double volumeSipped, double currentVolume) {
-        VolumeSipped = volumeSipped;
-        CurrentVolume = currentVolume;
-    };
+        SipEvent(double volumeSipped, double currentVolume) {
+            VolumeSipped = volumeSipped;
+            CurrentVolume = currentVolume;
+        };
 
-    String ToJsonString() {
-        String output;
-        StaticJsonDocument<512> doc;
-        doc["volumeSipped"] = VolumeSipped;
-        doc["currentVolume"] = CurrentVolume;
-        serializeJson(doc, output);
-        return output;
-    }
-}
+        String ToJsonString() {
+            String output;
+            StaticJsonDocument<512> doc;
+            doc["volumeSipped"] = VolumeSipped;
+            doc["currentVolume"] = CurrentVolume;
+            serializeJson(doc, output);
+            return output;
+        };
+};

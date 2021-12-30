@@ -13,6 +13,8 @@
 #include "Settings.cpp"
 #include "ArduinoSecrets.h"
 #include "Arduinodata.h"
+#include "CoffeeMessage.cpp"
+#include "SipEvent.cpp"
 
 const char* broker = "mqtt.flespi.io";
 
@@ -22,6 +24,7 @@ const char* willMessage = "Frederik er lækker";
 boolean willRetain = false;
 
 int interval = 5000;
+unsigned long previousMillis = 0;
 boolean sipState = false;
 double sipAngle;
 double distanceToCoffee;
@@ -90,6 +93,16 @@ double getLiquidDistance() {
   return distance + ULTRASONIC_LENGTH;
 }
 
+double getNormalizedLiquidDistance() {
+  double totalDistanceSum = 0;
+  for (int i = 0; i < 10; i++) {
+    totalDistanceSum += getLiquidDistance();
+    delay(10);
+  }
+
+  return totalDistanceSum / 10;
+}
+
 double calculateVolumeOfCoffee(double coffeeDistance) {
   return PI * (CUP_RADIUS * CUP_RADIUS) * coffeeDistance;
 }
@@ -106,7 +119,7 @@ void handleSipping() {
   roll = atan2(y_Buff, z_Buff) * RADIAN_TO_DEGREE;
   pitch = atan2((- x_Buff), sqrt(y_Buff * y_Buff + z_Buff * z_Buff)) * RADIAN_TO_DEGREE;
 
-  Serial.println("");
+  /*Serial.println("");
   Serial.print(roll);
   Serial.print(" ");
   Serial.print(pitch);
@@ -114,17 +127,17 @@ void handleSipping() {
   Serial.print(STATIC_ROLL);
   Serial.print(" ");
   Serial.print(STATIC_PITCH);
-  Serial.println("");
+  Serial.println("");*/
 
   double absoluteDifferencePitch = abs(abs(STATIC_ROLL) - abs(roll));
   double absoluteDifferenceRoll = abs(abs(STATIC_PITCH) - abs(pitch));
 
-  Serial.print("Sip angle: ");
+  /*Serial.print("Sip angle: ");
   Serial.println(sipAngle);
   Serial.print("Absolute difference pitch: ");
   Serial.println(absoluteDifferencePitch);
   Serial.print("Absolute difference roll: ");
-  Serial.println(absoluteDifferenceRoll);
+  Serial.println(absoluteDifferenceRoll);*/
 
   if(((absoluteDifferencePitch >= sipAngle) || (absoluteDifferenceRoll >= sipAngle)) && !sipState) {
     sipState = true;
@@ -151,10 +164,10 @@ void handleSipping() {
     Serial.println(absoluteDifferenceRoll);
 
     if((absoluteDifferencePitch < STILL_ANGLE) && (absoluteDifferenceRoll < STILL_ANGLE)) {
-      delay(500);    
+      delay(1500);    
       sipState = false;
       Serial.println("Sip is done");
-      double newDistanceToCoffee = getLiquidDistance();
+      double newDistanceToCoffee = getNormalizedLiquidDistance();
       double newDistance = CUP_HEIGHT - newDistanceToCoffee;
       double newVolume = calculateVolumeOfCoffee(newDistance);
       double volumeSipped = currentCoffeeVolume - newVolume;
@@ -173,7 +186,11 @@ void handleSipping() {
       currentCoffeeVolume = newVolume;
       distanceToCoffee = newDistanceToCoffee;
       sipAngle = (atan2(distanceToCoffee, CUP_RADIUS) * RADIAN_TO_DEGREE) - SIP_ANGLE_OFFSET;
-      
+      SipEvent evt(volumeSipped, newVolume);
+      String evtString = evt.ToJsonString();
+      CoffeeMessage msg(MACHINE_ID, evtString);
+      String msgString = msg.ToJsonString();      
+      client.publish("event/coffee.sipped", msgString.c_str()); 
     }
     delay(1000);
   }  
@@ -215,16 +232,29 @@ void setup() {
   client.setServer(broker, 1883); 
   client.setCallback(settings_callback);
   temp_sensor.begin();
+
+  previousMillis = millis();
 }
 
 void loop() {
-  if(!client.connected()){
+  /*if(!client.connected()){
     reconnect();
+  }*/
+  long currentMillis = millis();
+  if (currentMillis - previousMillis >= interval) {
+    Serial.print(interval / 1000);
+    Serial.println(" seconds has passed");
+    Serial.println(currentMillis - previousMillis);
+    previousMillis = millis();
   }
-
-  handleSipping();
-  Serial.print(getLiquidDistance());
+  //handleSipping();
+  /*Serial.print("Distance to coffee: ");
+  Serial.print(getNormalizedLiquidDistance());
   Serial.println("cm");
+  
+  Serial.print("Coffee height: ");
+  Serial.print(CUP_HEIGHT - getNormalizedLiquidDistance());
+  Serial.println("cm");*/
 
   /*temp_sensor.requestTemperatures();
   float temperatureC = temp_sensor.getTempCByIndex(0);
@@ -235,5 +265,5 @@ void loop() {
   client.loop();
 
   delay(interval);*/
-  delay(1000);
+  delay(10);
 }
