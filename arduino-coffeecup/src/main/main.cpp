@@ -60,7 +60,7 @@ void reconnect() {
     if(client.connect("kristian", FLESPI_TOKEN, "")){
       Serial.print("\nConnected to ");
       Serial.print(broker);
-      client.subscribe("settings");
+      client.subscribe(MACHINE_ID + "/settings-change");
     } else {
       Serial.println("\nTrying again");
       delay(5000);
@@ -244,10 +244,10 @@ void handleSipping() {
 
       if (isPourOut) {
         Serial.println("Has been poured");
-        client.publish("event/coffee.poured", msgString.c_str()); 
+        client.publish("smart-cup/event/coffee.poured", msgString.c_str()); 
       } else {        
         Serial.println("Coffee has been sipped");
-        client.publish("event/coffee.sipped", msgString.c_str()); 
+        client.publish("smart-cup/event/coffee.sipped", msgString.c_str()); 
       }
     }
     delay(1000);
@@ -280,7 +280,7 @@ void handlePouring() {
       String evtStr = evt.ToJsonString();
       CoffeeMessage msg(MACHINE_ID, evtStr);
       String msgStr = msg.ToJsonString();
-      client.publish("event/coffee_filled", msgStr.c_str());  
+      client.publish("smart-cup/event/coffee.filled", msgStr.c_str());  
       distanceToCoffee = currentDistance;
       setSipAndPouringAngles();      
     }
@@ -294,7 +294,7 @@ void handleTemperature() {
   Temperature temp(MACHINE_ID, temperatureC, "Celsius", temperatureC <= minTemp);
   String output = temp.ToJsonString();
   if (temp.Value > UNDEFINED_TEMP_VALUE) {    
-    client.publish("temperature", output.c_str());
+    client.publish("smart-cup/temp", output.c_str());
   }
 }
 
