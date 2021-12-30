@@ -11,10 +11,11 @@
 
 #include "Temperature.cpp"
 #include "Settings.cpp"
-#include "ArduinoSecrets.h"
-#include "Arduinodata.h"
 #include "CoffeeMessage.cpp"
 #include "SipEvent.cpp"
+#include "FillEvent.cpp"
+#include "ArduinoSecrets.h"
+#include "Arduinodata.h"
 
 const char* broker = "mqtt.flespi.io";
 
@@ -272,12 +273,16 @@ void handlePouring() {
       double oldVolume = calculateVolumeOfCoffee(CUP_HEIGHT - distanceToCoffee);
 
       double volumePoured = currentVolume - oldVolume;
-      Serial.println(volumePoured);
-      // Pouring occured. Do something
-      Serial.println("Pouring occured");
+      Serial.print("Pouring occured: ");
+      Serial.print(volumePoured);
+      Serial.println("ml");
+      FillEvent evt(volumePoured);
+      String evtStr = evt.ToJsonString();
+      CoffeeMessage msg(MACHINE_ID, evtStr);
+      String msgStr = msg.ToJsonString();
+      client.publish("event/coffee_filled", msgStr.c_str());  
       distanceToCoffee = currentDistance;
-      setSipAndPouringAngles();
-      
+      setSipAndPouringAngles();      
     }
     pourState = false;
   }
