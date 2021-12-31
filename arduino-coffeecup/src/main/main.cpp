@@ -13,6 +13,7 @@
 #include "Settings.cpp"
 #include "CoffeeMessage.cpp"
 #include "SipEvent.cpp"
+#include "PourEvent.cpp"
 #include "FillEvent.cpp"
 #include "ArduinoSecrets.h"
 #include "Arduinodata.h"
@@ -60,7 +61,8 @@ void reconnect() {
     if(client.connect("kristian", FLESPI_TOKEN, "")){
       Serial.print("\nConnected to ");
       Serial.print(broker);
-      client.subscribe(MACHINE_ID + "/settings-change");
+      std::string topic = MACHINE_ID + std::string("/settings-change");
+      client.subscribe(topic.c_str());
     } else {
       Serial.println("\nTrying again");
       delay(5000);
@@ -151,16 +153,6 @@ void handleSipping() {
   roll = atan2(y_Buff, z_Buff) * RADIAN_TO_DEGREE;
   pitch = atan2((- x_Buff), sqrt(y_Buff * y_Buff + z_Buff * z_Buff)) * RADIAN_TO_DEGREE;
 
-  /*Serial.println("");
-  Serial.print(roll);
-  Serial.print(" ");
-  Serial.print(pitch);
-  Serial.println("");
-  Serial.print(STATIC_ROLL);
-  Serial.print(" ");
-  Serial.print(STATIC_PITCH);
-  Serial.println("");*/
-
   double absoluteDifferencePitch = abs(abs(STATIC_ROLL) - abs(roll));
   double absoluteDifferenceRoll = abs(abs(STATIC_PITCH) - abs(pitch));
 
@@ -189,7 +181,7 @@ void handleSipping() {
     z_Buff = float(a.acceleration.z);
 
     roll = atan2(y_Buff , z_Buff) * RADIAN_TO_DEGREE;
-    pitch = atan2((- x_Buff) , sqrt(y_Buff * y_Buff + z_Buff * z_Buff)) * RADIAN_TO_DEGREE;
+    pitch = atan2((- x_Buff) , sqrt(y_Buff * y_Buff + z_Buff * z_Buff)) * RADIAN_TO_DEGREE;    
 
     absoluteDifferencePitch = abs(abs(STATIC_ROLL) - abs(roll));
     absoluteDifferenceRoll = abs(abs(STATIC_PITCH) - abs(pitch));
@@ -237,18 +229,23 @@ void handleSipping() {
       currentCoffeeVolume = newVolume;
       distanceToCoffee = newDistanceToCoffee;
       setSipAndPouringAngles();
-      SipEvent evt(volumeSipped, newVolume);
-      String evtString = evt.ToJsonString();
-      CoffeeMessage msg(MACHINE_ID, evtString);
-      String msgString = msg.ToJsonString();
-
+      
+      String evtString;
+      String topic; 
       if (isPourOut) {
         Serial.println("Has been poured");
-        client.publish("smart-cup/event/coffee.poured", msgString.c_str()); 
+        topic = "smart-cup/event/coffee.poured";
+        PourEvent evt(volumeSipped, newVolume);
+        evtString = evt.ToJsonString();
       } else {        
         Serial.println("Coffee has been sipped");
-        client.publish("smart-cup/event/coffee.sipped", msgString.c_str()); 
+        topic = "smart-cup/event/coffee.sipped";
+        SipEvent evt(volumeSipped, newVolume);
+        evtString = evt.ToJsonString();
       }
+      CoffeeMessage msg(MACHINE_ID, evtString);
+      String msgStr = msg.ToJsonString();
+      client.publish(topic.c_str(), msgStr.c_str());
     }
     delay(1000);
   }  
@@ -256,10 +253,10 @@ void handleSipping() {
 
 boolean isPouring() {
   double currentDistance = getNormalizedLiquidDistance();
-  /*Serial.print("Current distance: ");
+  Serial.print("Current distance: ");
   Serial.println(currentDistance);
   Serial.print("Previous coffee distance: ");
-  Serial.println(prevCoffeeDistance);*/
+  Serial.println(prevCoffeeDistance);
   double offset = 0.5;
   return currentDistance + offset < prevCoffeeDistance;
 }
@@ -291,10 +288,12 @@ void handlePouring() {
 void handleTemperature() {
   temp_sensor.requestTemperatures();
   float temperatureC = temp_sensor.getTempCByIndex(0);
-  Temperature temp(MACHINE_ID, temperatureC, "Celsius", temperatureC <= minTemp);
-  String output = temp.ToJsonString();
+  Temperature temp(MACHINE_ID, temperatureC, "temp/c", temperatureC <= minTemp);
+  String output = temp.ToJsonString();  
+  Serial.println(temperatureC);
   if (temp.Value > UNDEFINED_TEMP_VALUE) {    
     client.publish("smart-cup/temp", output.c_str());
+    Serial.println("Sent");
   }
 }
 
@@ -341,7 +340,7 @@ void loop() {
   }
   long currentMillis = millis();
   if (currentMillis - previousMillis >= interval) {
-    
+    handleTemperature();
     previousMillis = millis();
   }
   handleSipping();
