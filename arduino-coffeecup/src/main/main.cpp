@@ -6,7 +6,6 @@
 #include <DallasTemperature.h>
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
-#include <Wire.h>
 #include <math.h>
 
 #include "Temperature.cpp"
@@ -156,13 +155,6 @@ void handleSipping() {
   double absoluteDifferencePitch = abs(abs(STATIC_ROLL) - abs(roll));
   double absoluteDifferenceRoll = abs(abs(STATIC_PITCH) - abs(pitch));
 
-  /*Serial.print("Sip angle: ");
-  Serial.println(sipAngle);
-  Serial.print("Absolute difference pitch: ");
-  Serial.println(absoluteDifferencePitch);
-  Serial.print("Absolute difference roll: ");
-  Serial.println(absoluteDifferenceRoll);*/
-
   if(((absoluteDifferencePitch >= sipAngle) || (absoluteDifferenceRoll >= sipAngle)) && !sipState) {
     sipState = true;
     pourState = false;
@@ -194,13 +186,6 @@ void handleSipping() {
       maxDrinkingAnkle = absoluteDifferenceRoll;
     }
 
-    /*Serial.print("Sip angle: ");
-    Serial.println(sipAngle);
-    Serial.print("Absolute difference pitch: ");
-    Serial.println(absoluteDifferencePitch);
-    Serial.print("Absolute difference roll: ");
-    Serial.println(absoluteDifferenceRoll);*/
-
     if((absoluteDifferencePitch < STILL_ANGLE) && (absoluteDifferenceRoll < STILL_ANGLE)) {
       boolean isPourOut = false;
       long sipDuration = millis() - sipStart;
@@ -213,18 +198,6 @@ void handleSipping() {
       double newDistance = CUP_HEIGHT - newDistanceToCoffee;
       double newVolume = calculateVolumeOfCoffee(newDistance);
       double volumeSipped = currentCoffeeVolume - newVolume;
-      /*Serial.print("New distance to coffee: ");
-      Serial.println(newDistanceToCoffee);
-      Serial.print("New distance: ");
-      Serial.println(newDistance);
-      Serial.print("Old distance: ");
-      Serial.println(distanceToCoffee);
-      Serial.print("New volume: ");
-      Serial.print(newVolume);
-      Serial.println("ml");
-      Serial.print("Volume sipped: ");
-      Serial.print(volumeSipped);
-      Serial.println("ml");*/
 
       currentCoffeeVolume = newVolume;
       distanceToCoffee = newDistanceToCoffee;
@@ -317,14 +290,7 @@ void setup() {
   
   distanceToCoffee = getLiquidDistance();
   double coffeeHeight = CUP_HEIGHT - distanceToCoffee;
-  currentCoffeeVolume = calculateVolumeOfCoffee(coffeeHeight);  
-  /*Serial.print("distance to coffee: ");
-  Serial.println(distanceToCoffee);
-  Serial.print("coffee height: ");
-  Serial.println(coffeeHeight);
-  Serial.print("volume of coffee: ");
-  Serial.print(currentCoffeeVolume);
-  Serial.println("ml");*/
+  currentCoffeeVolume = calculateVolumeOfCoffee(coffeeHeight); 
   setSipAndPouringAngles();
     
   client.setServer(broker, 1883); 
@@ -356,13 +322,6 @@ void loop() {
   if (pourState) {
     handlePouring();
   }
-  /*Serial.print("Distance to coffee: ");
-  Serial.print(getNormalizedLiquidDistance());
-  Serial.println("cm");
-  
-  Serial.print("Coffee height: ");
-  Serial.print(CUP_HEIGHT - getNormalizedLiquidDistance());
-  Serial.println("cm");*/
   client.loop();
   delay(10);
 }
