@@ -13,8 +13,8 @@ class Settings {
     Settings(String jsonString) {
         DynamicJsonDocument doc(1024);
         deserializeJson(doc, jsonString);
-        int interval = doc["interval"];
-        int prefMinTemp = doc["prefMinTemp"];
+        int interval = doc["data"]["interval"];
+        int prefMinTemp = doc["data"]["prefMinTemp"];
 
         Interval = interval;
         PrefMinTemp = prefMinTemp;

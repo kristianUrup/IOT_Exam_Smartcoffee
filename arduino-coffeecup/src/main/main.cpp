@@ -307,7 +307,7 @@ void loop() {
   long currentMillis = millis();
   if (currentMillis - previousMillis >= interval) {
     handleTemperature();
-    previousMillis = millis();
+    previousMillis = millis();  
   }
   handleSipping();
 
